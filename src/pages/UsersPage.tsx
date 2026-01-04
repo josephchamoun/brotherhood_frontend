@@ -3,11 +3,13 @@ import api from "../api/api";
 import type { User } from "../types";
 import Navbar from "../components/Navbar";
 import AddUserModal from "../components/AddUserModal";
+import AddToSectionModal from "../components/AddToSectionModal";
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
   const loggedUser: User | null = JSON.parse(
     localStorage.getItem("user_info") || "null"
@@ -54,17 +56,36 @@ export default function UsersPage() {
         <p className="font-medium">{u.name}</p>
         <p className="text-sm text-gray-600">{u.email}</p>
         {u.phone && <p className="text-xs text-gray-500">{u.phone}</p>}
+
+        {/* Display sections */}
+        {u.sections && u.sections.length > 0 && (
+          <p className="text-xs text-gray-500 mt-1">
+            Sections: {u.sections.map((s) => s.name).join(", ")}
+          </p>
+        )}
       </div>
 
-      {/* Only global admins can delete normal users */}
-      {!isAdmin && isGlobalAdmin && (
-        <button
-          className="text-red-600 hover:text-red-800"
-          onClick={() => handleDeleteUser(u.id)}
-        >
-          <TrashIcon className="w-5 h-5" />
-        </button>
-      )}
+      <div className="flex gap-2">
+        {/* Delete button (only global admins can delete other users) */}
+        {!isAdmin && isGlobalAdmin && (
+          <button
+            className="text-red-600 hover:text-red-800 flex items-center gap-1"
+            onClick={() => handleDeleteUser(u.id)}
+          >
+            <TrashIcon className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* Add to Section button */}
+        {!isAdmin && (
+          <button
+            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+            onClick={() => setSelectedUserId(u.id)}
+          >
+            Add to Section
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -138,6 +159,21 @@ export default function UsersPage() {
           onCreated={() => {
             fetchUsers();
             setShowAddUser(false);
+          }}
+        />
+      )}
+
+      {/* Add to Section Modal */}
+      {selectedUserId && (
+        <AddToSectionModal
+          userId={selectedUserId}
+          userSections={
+            users.find((u) => u.id === selectedUserId)?.sections || []
+          }
+          onClose={() => setSelectedUserId(null)}
+          onSuccess={() => {
+            setSelectedUserId(null);
+            fetchUsers();
           }}
         />
       )}
