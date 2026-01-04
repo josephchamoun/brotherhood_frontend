@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../api/api";
 import Navbar from "../components/Navbar";
 import type { Event } from "../types";
+import TrashIcon from "@heroicons/react/24/solid/esm/TrashIcon";
 
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
@@ -9,6 +10,16 @@ export default function EventsPage() {
   const [yearFilter, setYearFilter] = useState<number | "All">("All");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const handleDeleteEvent = async (eventId: number) => {
+    if (!window.confirm("Are you sure you want to delete this event?")) return;
+
+    await api.delete(`/event/delete/${eventId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
+  };
 
   useEffect(() => {
     api
@@ -76,6 +87,10 @@ export default function EventsPage() {
               </option>
             ))}
           </select>
+          {/*add events button*/}
+          <button className="bg-green-600 text-white px-4 py-2 rounded ml-auto">
+            Add Event
+          </button>
         </div>
 
         {/* Loading / Error */}
@@ -89,6 +104,13 @@ export default function EventsPage() {
               key={event.id}
               className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 flex flex-col"
             >
+              {/* Delete */}
+              <button
+                className="text-red-600 hover:text-red-800 self-end mb-2"
+                onClick={() => handleDeleteEvent(event.id)}
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
               <h2 className="text-xl font-semibold text-gray-800 mb-1">
                 {event.title}
               </h2>

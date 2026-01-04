@@ -31,6 +31,32 @@ export default function Navbar() {
         Users
       </NavLink>
 
+      <NavLink
+        to="/chabiba"
+        className={({ isActive }) =>
+          isActive ? "text-blue-400 font-semibold" : "hover:text-blue-300"
+        }
+      >
+        Chabiba
+      </NavLink>
+      <NavLink
+        to="/tala2e3"
+        className={({ isActive }) =>
+          isActive ? "text-blue-400 font-semibold" : "hover:text-blue-300"
+        }
+      >
+        Tala2e3
+      </NavLink>
+
+      <NavLink
+        to="/forsan"
+        className={({ isActive }) =>
+          isActive ? "text-blue-400 font-semibold" : "hover:text-blue-300"
+        }
+      >
+        Forsan
+      </NavLink>
+
       <NavLink to="/events" className="hover:text-blue-300">
         Events
       </NavLink>

@@ -1,22 +1,48 @@
-export interface Role {
-  id: number;
-  name: string;
+export interface Pivot {
+  user_id: number;
+  section_id: number;
+  role_id: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface Section {
   id: number;
   name: string;
-  description: string;
+  description?: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  pivot?: Pivot; // for many-to-many relation
 }
+
+export interface Role {
+  id: number;
+  name: string;
+}
+
+export interface UserForm {
+  name: string;
+  email: string;
+  phone?: string;
+  password: string;
+}
+
 
 export interface User {
   id: number;
   name: string;
   email: string;
-  role?: Role;
-  section?: Section;
-  created_by?: number;
+  password: string;
+  phone?: string | null;
+  is_global_admin: boolean;      
+  created_by?: number | null;
+  created_at?: string;
+  updated_at?: string;
+  sections?: Section[];          
+  role?: Role;                  
+  creator?: User | null;
 }
+
 
 
 export interface Shop {

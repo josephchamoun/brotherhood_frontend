@@ -2,41 +2,69 @@ import { useEffect, useState } from "react";
 import api from "../api/api";
 import type { User } from "../types";
 import Navbar from "../components/Navbar";
-import AddUserCard from "../components/Card";
+import AddUserModal from "../components/AddUserModal";
+import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
-  const loggedInUser = JSON.parse(localStorage.getItem("user_info") || "{}");
-
   const [showAddUser, setShowAddUser] = useState(false);
-  const [selectedSectionId, setSelectedSectionId] = useState<number | null>(
-    null
+
+  const loggedUser: User | null = JSON.parse(
+    localStorage.getItem("user_info") || "null"
   );
+  const isGlobalAdmin = loggedUser?.is_global_admin === true;
+
+  const fetchUsers = () => {
+    api
+      .get("/users", {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+        },
+      })
+      .then((res) => setUsers(res.data))
+      .catch(console.error);
+  };
 
   useEffect(() => {
-    api.get("/users").then((res) => setUsers(res.data));
+    fetchUsers();
   }, []);
 
-  // Filter by section
-  const chabibaUsers = users
-    .filter((u) => u.section?.name === "Chabiba")
-    .sort((a) => (a.role?.name?.toLowerCase().includes("president") ? -1 : 1));
+  const handleDeleteUser = async (userId: number) => {
+    if (!window.confirm("Are you sure you want to delete this user?")) return;
 
-  const talaeeUsers = users
-    .filter((u) => u.section?.name === "Talaee")
-    .sort((a) => (a.role?.name?.toLowerCase().includes("president") ? -1 : 1));
+    await api.delete(`/user/delete/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+      },
+    });
 
-  const forsanUsers = users
-    .filter((u) => u.section?.name === "Forsan")
-    .sort((a) => (a.role?.name?.toLowerCase().includes("president") ? -1 : 1));
+    setUsers((prev) => prev.filter((u) => u.id !== userId));
+  };
 
-  const renderUser = (u: User) => (
+  const globalAdmins = users.filter((u) => u.is_global_admin);
+  const otherUsers = users.filter((u) => !u.is_global_admin);
+
+  const renderUser = (u: User, isAdmin = false) => (
     <div
       key={u.id}
-      className="bg-gray-50 p-3 rounded mb-2 shadow-sm flex flex-col"
+      className="bg-gray-50 hover:bg-gray-100 transition p-3 rounded-lg
+                 shadow-sm flex justify-between items-center"
     >
-      <p className="font-medium">{u.name}</p>
-      <p className="text-sm text-gray-600">{u.role?.name ?? "No role"}</p>
+      <div>
+        <p className="font-medium">{u.name}</p>
+        <p className="text-sm text-gray-600">{u.email}</p>
+        {u.phone && <p className="text-xs text-gray-500">{u.phone}</p>}
+      </div>
+
+      {/* Only global admins can delete normal users */}
+      {!isAdmin && isGlobalAdmin && (
+        <button
+          className="text-red-600 hover:text-red-800"
+          onClick={() => handleDeleteUser(u.id)}
+        >
+          <TrashIcon className="w-5 h-5" />
+        </button>
+      )}
     </div>
   );
 
@@ -45,98 +73,74 @@ export default function UsersPage() {
       <Navbar />
 
       <div className="max-w-6xl mx-auto p-6">
-        {/* Page Title */}
         <h1 className="text-3xl font-bold mb-6 text-center">Users</h1>
 
-        {/* Grid of sections */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Chabiba */}
-          <div className="bg-white p-4 rounded shadow">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-xl font-bold">
-                Chabiba <span className="text-gray-500">(شبيبة)</span>
+          {/* Global Admins */}
+          <div className="bg-white p-4 rounded-xl shadow border md:col-span-1">
+            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+              👑 Global Admins
+              <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">
+                {globalAdmins.length}
+              </span>
+            </h2>
+
+            <div className="space-y-2">
+              {globalAdmins.length ? (
+                globalAdmins.map((u) => renderUser(u, true))
+              ) : (
+                <p className="text-gray-400 text-sm text-center py-4">
+                  No global admins
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Other Users */}
+          <div className="bg-white p-4 rounded-xl shadow border md:col-span-2">
+            <div className="flex justify-between items-center mb-3 border-b pb-2">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                👥 Other Users
+                <span className="text-xs bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
+                  {otherUsers.length}
+                </span>
               </h2>
-              {(loggedInUser?.role_id === 1 || loggedInUser?.role_id === 2) && (
+
+              {isGlobalAdmin && (
                 <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                  onClick={() => {
-                    setSelectedSectionId(1); // Chabiba section ID
-                    setShowAddUser(true);
-                  }}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                  onClick={() => setShowAddUser(true)}
                 >
-                  + Add
+                  <PlusIcon className="w-4 h-4" />
+                  Add User
                 </button>
               )}
             </div>
-            <div>{chabibaUsers.map(renderUser)}</div>
-          </div>
 
-          {/* Talaee */}
-          <div className="bg-white p-4 rounded shadow">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-xl font-bold">
-                Talaee <span className="text-gray-500">(طلائع)</span>
-              </h2>
-              {(loggedInUser?.role_id === 3 || loggedInUser?.role_id === 1) && (
-                <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                  onClick={() => {
-                    setSelectedSectionId(2); // Talaee section ID
-                    setShowAddUser(true);
-                  }}
-                >
-                  + Add
-                </button>
+            <div className="max-h-[65vh] overflow-y-auto pr-1 space-y-2">
+              {otherUsers.length ? (
+                otherUsers.map((u) => renderUser(u))
+              ) : (
+                <p className="text-gray-400 text-sm text-center py-6">
+                  No users
+                </p>
               )}
             </div>
-
-            <div>{talaeeUsers.map(renderUser)}</div>
           </div>
-
-          {/* Forsan */}
-          <div className="bg-white p-4 rounded shadow">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-xl font-bold">
-                Forsan <span className="text-gray-500">(فرسان)</span>
-              </h2>
-              {(loggedInUser?.role_id === 4 || loggedInUser?.role_id === 1) && (
-                <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm"
-                  onClick={() => {
-                    setSelectedSectionId(3); // Forsan section ID
-                    setShowAddUser(true);
-                  }}
-                >
-                  + Add
-                </button>
-              )}
-            </div>
-            <div>{forsanUsers.map(renderUser)}</div>
-          </div>
-
-          {showAddUser && (
-            <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-              <div className="relative">
-                <button
-                  className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-7 h-7"
-                  onClick={() => setShowAddUser(false)}
-                >
-                  ✕
-                </button>
-
-                <AddUserCard
-                  createdBy={loggedInUser.id}
-                  section_id={selectedSectionId}
-                  onSuccess={() => {
-                    setShowAddUser(false);
-                    api.get("/users").then((res) => setUsers(res.data));
-                  }}
-                />
-              </div>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Add User Modal */}
+      {showAddUser && isGlobalAdmin && (
+        <AddUserModal
+          open={showAddUser}
+          onClose={() => setShowAddUser(false)}
+          onCreated={() => {
+            fetchUsers();
+            setShowAddUser(false);
+          }}
+        />
+      )}
     </div>
   );
 }
