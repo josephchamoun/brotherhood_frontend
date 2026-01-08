@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState } from "react";
 import api from "../api/api";
 import type { User, Role } from "../types";
@@ -21,6 +22,10 @@ export default function ChabibaPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [assigningUserId, setAssigningUserId] = useState<number | null>(null);
+  const [search, setSearch] = useState("");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().slice(0, 10)
+  );
 
   const loggedInUser = JSON.parse(localStorage.getItem("user_info") || "null");
   const isAdmin = loggedInUser?.is_global_admin;
@@ -28,7 +33,7 @@ export default function ChabibaPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await api.get("/chabiba-role", {
+      const res = await api.get(`/chabiba-role?date=${selectedDate}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
@@ -41,8 +46,14 @@ export default function ChabibaPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [selectedDate]);
 
+  // Filter users by search text
+  const filteredUsers = users.filter((user) =>
+    user.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Get role IDs that are already taken (except normal member)
   const takenRoleIds = users
     .map(
       (u) =>
@@ -97,7 +108,6 @@ export default function ChabibaPage() {
     }
   };
 
-  // 🚧 BACKEND LATER
   const removeFromSection = async (userId: number) => {
     alert(`Remove user ${userId} from section (backend later)`);
   };
@@ -111,21 +121,50 @@ export default function ChabibaPage() {
           Chabiba <span className="text-gray-400">شبيبة</span>
         </h1>
 
-        <div className="bg-white p-6 rounded-xl shadow">
+        <div className="bg-white p-6 rounded-xl shadow mb-6">
+          {/* Search bar */}
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border p-2 rounded w-full mb-4"
+          />
+
+          {/* Single date picker */}
+          <div className="flex items-center gap-2 mb-4">
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="border p-2 rounded"
+            />
+            <button
+              onClick={fetchUsers}
+              className="bg-blue-500 text-white px-3 rounded"
+            >
+              Show
+            </button>
+          </div>
+
           <h2 className="font-bold mb-4">Members</h2>
 
           {loading ? (
             <p className="text-center">Loading...</p>
+          ) : filteredUsers.length === 0 ? (
+            <p className="text-center text-gray-500">No users found.</p>
           ) : (
-            users.map((user) => {
+            filteredUsers.map((user) => {
               const section = user.sections?.find(
                 (s) => s.id === CHABIBA_SECTION_ID
               );
 
               const roleId = section?.pivot?.role_id ?? NORMAL_ROLE_ID;
-
               const roleName =
                 ROLES.find((r) => r.id === roleId)?.name || "Normal Member";
+
+              const startDate = section?.pivot?.start_date;
+              const endDate = section?.pivot?.end_date ?? "Present";
 
               const isAssigning = assigningUserId === user.id;
 
@@ -136,10 +175,12 @@ export default function ChabibaPage() {
                 >
                   <div>
                     <p className="font-semibold">{user.name}</p>
-                    <p className="text-sm text-gray-500">{roleName}</p>
+                    <p className="text-sm text-gray-500">
+                      {roleName} — {startDate} to {endDate}
+                    </p>
                   </div>
 
-                  {isAdmin && (
+                  {isAdmin && section?.pivot?.end_date === null && (
                     <div className="flex gap-3 items-center">
                       {isAssigning ? (
                         <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
@@ -172,7 +213,6 @@ export default function ChabibaPage() {
                           Remove Role
                         </button>
                       )}
-
                       <button
                         disabled={assigningUserId !== null}
                         onClick={() => removeFromSection(user.id)}

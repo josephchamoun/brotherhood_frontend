@@ -16,6 +16,9 @@ export default function UsersPage() {
   );
   const isGlobalAdmin = loggedUser?.is_global_admin === true;
 
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split("T")[0];
+
   const fetchUsers = () => {
     api
       .get("/users", {
@@ -46,48 +49,64 @@ export default function UsersPage() {
   const globalAdmins = users.filter((u) => u.is_global_admin);
   const otherUsers = users.filter((u) => !u.is_global_admin);
 
-  const renderUser = (u: User, isAdmin = false) => (
-    <div
-      key={u.id}
-      className="bg-gray-50 hover:bg-gray-100 transition p-3 rounded-lg
-                 shadow-sm flex justify-between items-center"
-    >
-      <div>
-        <p className="font-medium">{u.name}</p>
-        <p className="text-sm text-gray-600">{u.email}</p>
-        {u.phone && <p className="text-xs text-gray-500">{u.phone}</p>}
+  const renderUser = (u: User, isAdmin = false) => {
+    // Only show active sections (start_date <= today && (end_date === null || end_date >= today))
+    const activeSections = u.sections?.filter(
+      (s) =>
+        s.pivot &&
+        s.pivot.start_date &&
+        s.pivot.start_date <= today &&
+        (s.pivot.end_date === null ||
+          s.pivot.end_date === undefined ||
+          s.pivot.end_date >= today)
+    );
 
-        {/* Display sections */}
-        {u.sections && u.sections.length > 0 && (
-          <p className="text-xs text-gray-500 mt-1">
-            Sections: {u.sections.map((s) => s.name).join(", ")}
-          </p>
-        )}
+    return (
+      <div
+        key={u.id}
+        className="bg-gray-50 hover:bg-gray-100 transition p-3 rounded-lg
+                   shadow-sm flex justify-between items-center"
+      >
+        <div>
+          <p className="font-medium">{u.name}</p>
+          <p className="text-sm text-gray-600">{u.email}</p>
+          {u.phone && <p className="text-xs text-gray-500">{u.phone}</p>}
+
+          {/* Display only active sections */}
+          {activeSections && activeSections.length > 0 && (
+            <p className="text-xs text-gray-500 mt-1">
+              Sections:{" "}
+              {Array.from(new Set(activeSections.map((s) => s.name))).join(
+                ", "
+              )}
+            </p>
+          )}
+        </div>
+
+        <div className="flex gap-2">
+          {/* Delete button (only global admins can delete other users) */}
+          {!isAdmin && isGlobalAdmin && (
+            <button
+              className="text-red-600 hover:text-red-800 flex items-center gap-1"
+              onClick={() => handleDeleteUser(u.id)}
+            >
+              <TrashIcon className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Add to Section button */}
+          {!isAdmin && (
+            <button
+              className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
+              onClick={() => setSelectedUserId(u.id)}
+            >
+              Add to Section
+            </button>
+          )}
+        </div>
       </div>
-
-      <div className="flex gap-2">
-        {/* Delete button (only global admins can delete other users) */}
-        {!isAdmin && isGlobalAdmin && (
-          <button
-            className="text-red-600 hover:text-red-800 flex items-center gap-1"
-            onClick={() => handleDeleteUser(u.id)}
-          >
-            <TrashIcon className="w-5 h-5" />
-          </button>
-        )}
-
-        {/* Add to Section button */}
-        {!isAdmin && (
-          <button
-            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-sm"
-            onClick={() => setSelectedUserId(u.id)}
-          >
-            Add to Section
-          </button>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-100">
