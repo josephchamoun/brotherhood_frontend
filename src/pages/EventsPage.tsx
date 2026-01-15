@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import api from "../api/api";
 import Navbar from "../components/Navbar";
@@ -212,6 +213,19 @@ export default function EventsPage() {
                   Shared Event 🔒
                 </span>
               )}
+
+              {/* --------------------------- */}
+              {/* Display Sections */}
+              <div className="flex gap-2 mt-2 flex-wrap">
+                {event.sections.map((section: any) => (
+                  <span
+                    key={section.id}
+                    className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
+                  >
+                    {section.name}
+                  </span>
+                ))}
+              </div>
             </div>
           ))}
         </div>
@@ -222,6 +236,9 @@ export default function EventsPage() {
         onCreated={(newEvent) => {
           setEvents((prev) => [newEvent, ...prev]);
         }}
+        isGlobalAdmin={
+          JSON.parse(localStorage.getItem("user_info") || "{}").is_global_admin
+        }
       />
     </div>
   );
