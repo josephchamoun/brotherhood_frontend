@@ -2,6 +2,7 @@
 import { useState } from "react";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -28,7 +29,7 @@ export default function LoginPage() {
       });
 
       localStorage.setItem("user_info", JSON.stringify(userInfo.data));
-      navigate("/");
+      navigate("/users");
     } catch (err: unknown) {
       setError("Invalid email or password");
     } finally {
@@ -209,6 +210,14 @@ export default function LoginPage() {
             )}
           </button>
         </form>
+        <div className="mt-6 flex justify-center">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 text-blue-600 hover:text-indigo-700 font-medium transition-colors"
+          >
+            ← Back to Home
+          </Link>
+        </div>
 
         {/* Divider with cross */}
         <div className="flex items-center my-6">
@@ -232,9 +241,9 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-gray-500 text-sm italic">
-          "For where two or three gather in my name,
+          "So do not fear, for I am with you;
           <br />
-          there am I with them." - Matthew 18:20
+          do not be dismayed, for I am your God." - Isaiah 41:10
         </p>
 
         <p className="mt-8 text-center text-gray-400 text-xs">

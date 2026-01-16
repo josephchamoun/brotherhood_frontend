@@ -48,6 +48,7 @@ export interface User {
   creator?: User | null;
   chabiba_roles: ChabibaRole[];
   section_roles?: any[];
+  date_of_birth?: Date;
 }
 
 
@@ -96,3 +97,8 @@ export interface UserRole {
   start_date: string;
   end_date: string | null;
 }
+
+export type Stats = {
+  total_users: number;
+  total_events: number;
+};

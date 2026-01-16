@@ -28,6 +28,24 @@ export default function UsersPage() {
   const isGlobalAdmin = loggedUser?.is_global_admin === true;
 
   const today = new Date().toISOString().split("T")[0];
+  const calculateAge = (dob?: Date | string) => {
+    if (!dob) return null;
+
+    const birthDate = dob instanceof Date ? dob : new Date(dob);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    return age;
+  };
 
   const fetchUsers = () => {
     api
@@ -161,6 +179,11 @@ export default function UsersPage() {
                   />
                 </svg>
                 {u.phone}
+              </p>
+            )}
+            {u.date_of_birth && (
+              <p className="text-xs text-gray-500 ml-12">
+                Age: {calculateAge(u.date_of_birth)} years
               </p>
             )}
 

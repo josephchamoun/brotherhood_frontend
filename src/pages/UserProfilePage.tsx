@@ -16,6 +16,7 @@ export default function UserProfilePage() {
     name: "",
     email: "",
     phone: "",
+    date_of_birth: "",
     password: "",
   });
 
@@ -40,6 +41,7 @@ export default function UserProfilePage() {
           name: raw.name || "",
           email: raw.email || "",
           phone: raw.phone || "",
+          date_of_birth: raw.date_of_birth || "",
           password: "",
         });
       } catch (error) {
@@ -79,6 +81,7 @@ export default function UserProfilePage() {
           name: updatedUser.data.name || "",
           email: updatedUser.data.email || "",
           phone: updatedUser.data.phone || "",
+          date_of_birth: updatedUser.data.date_of_birth || "",
           password: "",
         });
       } else {
@@ -152,6 +155,16 @@ export default function UserProfilePage() {
             placeholder="Phone"
             disabled={saving}
           />
+          <input
+            type="date"
+            value={form.date_of_birth}
+            onChange={(e) =>
+              setForm({ ...form, date_of_birth: e.target.value })
+            }
+            className="border p-2 rounded"
+            disabled={saving}
+          />
+
           <input
             placeholder="New Password"
             type="password"

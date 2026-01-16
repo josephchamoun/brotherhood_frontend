@@ -21,6 +21,7 @@ export default function AddUserModal({
     name: "",
     email: "",
     phone: "",
+    date_of_birth: "",
     password: "",
     is_global_admin: false,
   });
@@ -92,6 +93,15 @@ export default function AddUserModal({
           type="text"
           placeholder="Phone (optional)"
           value={form.phone}
+          onChange={handleChange}
+          className="w-full border rounded px-3 py-2"
+        />
+        <input
+          name="date_of_birth"
+          type="date"
+          placeholder="Date of Birth"
+          required
+          value={form.date_of_birth}
           onChange={handleChange}
           className="w-full border rounded px-3 py-2"
         />

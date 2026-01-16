@@ -7,8 +7,58 @@ import {
   FaHandsHelping,
   FaCalendarAlt,
 } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import api from "../api/api";
+import type { Stats } from "../types";
 
 export default function HomePage() {
+  const FOUNDATION_YEAR = 2026;
+  const yearsOfService = Math.max(
+    new Date().getFullYear() - FOUNDATION_YEAR,
+    0
+  );
+
+  const [animatedStats, setAnimatedStats] = useState<Stats>({
+    total_users: 0,
+    total_events: 0,
+  });
+
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get("/stats");
+        animateNumbers(res.data);
+      } catch (error) {
+        console.error("Failed to load stats", error);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const animateNumbers = (target: Stats) => {
+    const duration = 1200;
+    const startTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+
+      setAnimatedStats({
+        total_users: Math.floor(progress * target.total_users),
+        total_events: Math.floor(progress * target.total_events),
+      });
+
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      }
+    };
+
+    requestAnimationFrame(animate);
+  };
   return (
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
@@ -85,27 +135,40 @@ export default function HomePage() {
             town, and fostering a loving Christian community in Lebanon.
           </p>
 
-          <div className="flex flex-wrap justify-center gap-4">
+          <div className="flex flex-col items-center gap-6">
+            {/* Main navigation buttons */}
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                to="/events"
+                className="group bg-white text-blue-900 px-8 py-4 rounded-xl font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3"
+              >
+                <FaCalendarAlt className="text-xl group-hover:rotate-12 transition-transform" />
+                <span>Events</span>
+              </Link>
+
+              <Link
+                to="/shops"
+                className="group bg-white text-blue-900 px-8 py-4 rounded-xl font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3"
+              >
+                <FaStore className="text-xl group-hover:rotate-12 transition-transform" />
+                <span>Shops</span>
+              </Link>
+
+              <Link
+                to="/users"
+                className="group bg-white text-blue-900 px-8 py-4 rounded-xl font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3"
+              >
+                <FaUsers className="text-xl group-hover:rotate-12 transition-transform" />
+                <span>Members</span>
+              </Link>
+            </div>
+
+            {/* Login button centered alone */}
             <Link
-              to="/events"
-              className="group bg-white text-blue-900 px-8 py-4 rounded-xl font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3"
+              to="/login"
+              className="group bg-transparent border-2 border-white text-white px-10 py-3 rounded-xl font-semibold hover:bg-white hover:text-blue-900 transition-all transform hover:scale-105 flex items-center gap-3"
             >
-              <FaCalendarAlt className="text-xl group-hover:rotate-12 transition-transform" />
-              <span>Events</span>
-            </Link>
-            <Link
-              to="/shops"
-              className="group bg-white text-blue-900 px-8 py-4 rounded-xl font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3"
-            >
-              <FaStore className="text-xl group-hover:rotate-12 transition-transform" />
-              <span>Shops</span>
-            </Link>
-            <Link
-              to="/users"
-              className="group bg-white text-blue-900 px-8 py-4 rounded-xl font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 hover:-translate-y-1 flex items-center gap-3"
-            >
-              <FaUsers className="text-xl group-hover:rotate-12 transition-transform" />
-              <span>Members</span>
+              <span>Login</span>
             </Link>
           </div>
         </div>
@@ -131,23 +194,36 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Mission stats or key points */}
+        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+          {/* Total Members */}
           <div className="text-center p-6">
-            <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
-              100+
-            </div>
-            <p className="text-gray-600 font-medium">Active Members</p>
+            {loadingStats ? (
+              <div className="h-14 w-32 mx-auto bg-gray-200 rounded animate-pulse mb-2"></div>
+            ) : (
+              <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
+                {animatedStats.total_users}
+              </div>
+            )}
+            <p className="text-gray-600 font-medium">Total Members</p>
           </div>
+
+          {/* Events */}
           <div className="text-center p-6">
-            <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
-              50+
-            </div>
+            {loadingStats ? (
+              <div className="h-14 w-32 mx-auto bg-gray-200 rounded animate-pulse mb-2"></div>
+            ) : (
+              <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
+                {animatedStats.total_events}
+              </div>
+            )}
             <p className="text-gray-600 font-medium">Events Organized</p>
           </div>
+
+          {/* Static Metric */}
           <div className="text-center p-6">
             <div className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-2">
-              20+
+              {yearsOfService < 1 ? "Since 2026" : `${yearsOfService}`}
             </div>
             <p className="text-gray-600 font-medium">Years of Service</p>
           </div>

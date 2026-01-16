@@ -17,7 +17,6 @@ export default function AppRouter() {
     <BrowserRouter>
       <Routes>
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<HomePage />} />
           <Route path="/users" element={<UsersPage />} />
           <Route path="/users/:id" element={<UserProfilePage />} />
           <Route path="/profile" element={<MyProfilePage />} />
@@ -27,7 +26,7 @@ export default function AppRouter() {
           <Route path="/forsan" element={<ForsanPage />} />
           <Route path="/tala2e3" element={<Tala2e3Page />} />
         </Route>
-
+        <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />
       </Routes>
     </BrowserRouter>

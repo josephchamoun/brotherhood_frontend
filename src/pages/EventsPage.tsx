@@ -472,7 +472,7 @@ export default function EventsPage() {
                           <h2 className="text-xl font-bold text-white mb-1 pr-2">
                             {event.title}
                           </h2>
-                          <p className="text-blue-100 text-sm line-clamp-2">
+                          <p className="text-blue-100 text-sm">
                             {event.description}
                           </p>
                         </div>
