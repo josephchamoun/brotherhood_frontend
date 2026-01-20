@@ -47,6 +47,8 @@ export interface User {
   role?: Role;                  
   creator?: User | null;
   chabiba_roles: ChabibaRole[];
+  tala2e3_roles: Tala2e3Role[];
+  forsan_roles: ForsanRole[];
   section_roles?: any[];
   date_of_birth?: Date;
 }
@@ -90,6 +92,18 @@ export type Event = {
 
 
 export interface ChabibaRole {
+  id: number;
+  role_id: number;
+  start_date: string;
+  end_date: string | null;
+}
+export interface Tala2e3Role {
+  id: number;
+  role_id: number;
+  start_date: string;
+  end_date: string | null;
+}
+export interface ForsanRole {
   id: number;
   role_id: number;
   start_date: string;

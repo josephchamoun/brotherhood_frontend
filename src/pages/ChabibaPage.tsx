@@ -13,6 +13,7 @@ import {
 import api from "../api/api";
 import type { User, Role, ChabibaRole } from "../types";
 import Navbar from "../components/Navbar";
+import chabibaLogo from "../assets/chabibe.jpeg";
 
 const NORMAL_ROLE_ID = 10;
 
@@ -76,7 +77,7 @@ export default function ChabibaPage() {
   const isActiveUser = (user: User) => getActiveRoles(user).length > 0;
 
   const filteredUsers = users.filter((u) =>
-    u.name.toLowerCase().includes(search.toLowerCase())
+    u.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const activeUsers = filteredUsers.filter(isActiveUser);
@@ -97,7 +98,7 @@ export default function ChabibaPage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        }
+        },
       );
       fetchUsers();
     } finally {
@@ -118,7 +119,7 @@ export default function ChabibaPage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        }
+        },
       );
       fetchUsers();
     } finally {
@@ -139,7 +140,7 @@ export default function ChabibaPage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        }
+        },
       );
       fetchUsers();
     } finally {
@@ -157,7 +158,7 @@ export default function ChabibaPage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           },
-        }
+        },
       );
       fetchUsers();
     } finally {
@@ -296,7 +297,7 @@ export default function ChabibaPage() {
                       <button
                         onClick={() =>
                           setShowRoleModal(
-                            showRoleModal === user.id ? null : user.id
+                            showRoleModal === user.id ? null : user.id,
                           )
                         }
                         className="w-full sm:w-auto border-2 border-gray-200 px-4 py-2 rounded-lg text-sm font-medium hover:border-blue-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all cursor-pointer bg-white flex items-center justify-between gap-2"
@@ -389,13 +390,23 @@ export default function ChabibaPage() {
       <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Header with Religious Icons */}
         <div className="text-center mb-8 sm:mb-12 relative">
-          <div className="relative z-10">
+          <div className="relative z-10 flex flex-col items-center">
+            {/* Logo */}
+            <img
+              src={chabibaLogo}
+              alt="Chabiba Logo"
+              className="w-20 h-20 sm:w-28 sm:h-28 rounded-full mb-4 object-cover shadow-lg"
+            />
+
+            {/* Title */}
             <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
               Chabiba
             </h1>
             <p className="text-lg sm:text-xl text-gray-600 font-medium">
               الشبيبة
             </p>
+
+            {/* Subtitle with Hearts */}
             <div className="flex items-center justify-center gap-2 mt-3">
               <Heart className="w-4 h-4 text-red-500" />
               <p className="text-xs sm:text-sm text-gray-500">
