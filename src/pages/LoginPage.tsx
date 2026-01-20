@@ -3,6 +3,7 @@ import { useState } from "react";
 import api from "../api/api";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
+import MainLogo from "../assets/mainlogo.jpg";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -46,46 +47,17 @@ export default function LoginPage() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse delay-1000"></div>
       </div>
 
-      {/* Cross pattern overlay */}
-      <div className="absolute inset-0 opacity-5">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern
-              id="cross-pattern"
-              x="0"
-              y="0"
-              width="60"
-              height="60"
-              patternUnits="userSpaceOnUse"
-            >
-              <path
-                d="M30 10 L30 50 M10 30 L50 30"
-                stroke="white"
-                strokeWidth="2"
-              />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#cross-pattern)" />
-        </svg>
-      </div>
-
       <div className="relative z-10 bg-white/95 backdrop-blur-sm p-10 rounded-2xl shadow-2xl w-full max-w-md border border-white/20">
         {/* Logo/Cross symbol */}
         <div className="flex justify-center mb-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-full flex items-center justify-center shadow-lg">
-            <svg
-              className="w-12 h-12 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2.5}
-                d="M12 4v16m8-8H4"
+          <div className="flex justify-center mb-6">
+            <div className="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 overflow-hidden">
+              <img
+                src={MainLogo}
+                alt="Main Logo"
+                className="w-full h-full object-cover"
               />
-            </svg>
+            </div>
           </div>
         </div>
 

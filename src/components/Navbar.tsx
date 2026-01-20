@@ -10,11 +10,11 @@ import {
   LogOut,
   Menu,
   X,
-  Cross,
   Phone,
 } from "lucide-react";
 import { useState } from "react";
 import { UserGroupIcon } from "@heroicons/react/24/outline";
+import MainLogo from "../assets/mainlogo.jpg";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -45,9 +45,16 @@ export default function Navbar() {
         <div className="h-16 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Cross className="w-5 h-5 text-white" />
+            {/* Logo */}
+            <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center shadow-2xl border-4 border-white/20 overflow-hidden">
+              <img
+                src={MainLogo}
+                alt="Main Logo"
+                className="w-full h-full object-cover rounded-full"
+              />
             </div>
+
+            {/* Text */}
             <span className="hidden sm:block text-lg font-bold text-white">
               Brotherhood
             </span>
