@@ -1,5 +1,4 @@
-import { NavLink } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home,
   Users,
@@ -15,7 +14,6 @@ import {
   Phone,
 } from "lucide-react";
 import { useState } from "react";
-
 import { UserGroupIcon } from "@heroicons/react/24/outline";
 
 export default function Navbar() {
@@ -29,7 +27,7 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { to: "/", label: "Home", icon: Home },
+    { to: "/", label: "Home", icon: Home, iconOnly: true },
     { to: "/users", label: "Users", icon: Users },
     { to: "/profile", label: "Profile", icon: Users },
     { to: "/chabiba", label: "Chabiba", icon: Award },
@@ -42,97 +40,96 @@ export default function Navbar() {
   ];
 
   return (
-    <nav className="bg-gradient-to-r from-slate-800 via-slate-900 to-slate-800 text-white shadow-xl border-b border-slate-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo/Brand Section */}
-          <div className="flex items-center gap-2">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-              <Cross className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+    <nav className="sticky top-0 z-50 bg-slate-900 border-b border-slate-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="h-16 flex items-center justify-between">
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <Cross className="w-5 h-5 text-white" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-base sm:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Brotherhood
-              </span>
-              <span className="text-[10px] text-gray-400 hidden sm:block">
-                Lebanese Religious Community
-              </span>
-            </div>
+            <span className="hidden sm:block text-lg font-bold text-white">
+              Brotherhood
+            </span>
           </div>
 
-          {/* Desktop Navigation Links */}
-          <div className="hidden lg:flex items-center gap-2">
+          {/* Desktop Navigation */}
+          <div className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  `group relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition ${
                     isActive
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/50"
-                      : "text-gray-300 hover:text-white hover:bg-slate-700"
-                  }`
+                      ? "bg-slate-800 text-white"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800"
+                  } ${item.iconOnly ? "justify-center w-10" : ""}`
                 }
               >
                 <item.icon className="w-4 h-4" />
-                <span className="text-sm">{item.label}</span>
+
+                {!item.iconOnly && <span>{item.label}</span>}
+
+                {item.iconOnly && (
+                  <span className="pointer-events-none absolute top-11 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition bg-slate-800 text-white text-xs px-3 py-1 rounded-md shadow-lg">
+                    {item.label}
+                  </span>
+                )}
               </NavLink>
             ))}
 
-            {/* Logout Button */}
+            {/* Logout (Icon Only) */}
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 px-4 py-2 ml-2 rounded-lg font-medium text-gray-300 hover:text-red-400 hover:bg-slate-700 transition-all duration-200"
+              className="group relative ml-2 flex items-center justify-center w-10 h-10 rounded-lg text-red-400 hover:bg-slate-800 transition"
             >
               <LogOut className="w-4 h-4" />
-              <span className="text-sm">Logout</span>
+              <span className="pointer-events-none absolute top-11 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition bg-slate-800 text-white text-xs px-3 py-1 rounded-md shadow-lg">
+                Logout
+              </span>
             </button>
           </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 rounded-lg text-gray-300 hover:text-white hover:bg-slate-700 transition-all"
+            className="lg:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-800"
           >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {mobileMenuOpen ? <X /> : <Menu />}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden mt-4 pb-2 border-t border-slate-700 pt-4 space-y-2">
+          <div className="lg:hidden mt-2 border-t border-slate-800 pt-4 space-y-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  `flex items-center gap-4 px-4 py-3 rounded-lg transition ${
                     isActive
-                      ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg"
-                      : "text-gray-300 hover:text-white hover:bg-slate-700"
+                      ? "bg-slate-800 text-white"
+                      : "text-slate-400 hover:text-white hover:bg-slate-800"
                   }`
                 }
               >
                 <item.icon className="w-5 h-5" />
-                <span className="text-base">{item.label}</span>
+                <span className="text-sm">{item.label}</span>
               </NavLink>
             ))}
 
-            {/* Mobile Logout Button */}
             <button
               onClick={() => {
                 handleLogout();
                 setMobileMenuOpen(false);
               }}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-300 hover:text-red-400 hover:bg-slate-700 transition-all duration-200"
+              className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-red-400 hover:bg-slate-800"
             >
               <LogOut className="w-5 h-5" />
-              <span className="text-base">Logout</span>
+              Logout
             </button>
           </div>
         )}

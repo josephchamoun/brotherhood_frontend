@@ -1,13 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { FaLink, FaPlus, FaUsers } from "react-icons/fa";
+import { FaLink, FaUsers } from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import api from "../api/api";
+import EditMeetingLinkModal from "../components/EditMeetingLinkModal";
 
 interface MeetingSection {
+  id: number; // backend section ID
   key: "chabiba" | "tala2e3" | "forsan";
   title: string;
-  driveLinks: string[]; // one link per section in your case
+  driveLinks: string[];
 }
 
 export default function MeetingsPage() {
@@ -15,18 +17,19 @@ export default function MeetingsPage() {
 
   const [sections, setSections] = useState<MeetingSection[]>([]);
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedSection, setSelectedSection] = useState<MeetingSection | null>(
+    null,
+  );
 
   /* ---------------- PERMISSIONS ---------------- */
-  const canManageSection = (sectionKey: string) => {
-    return (
-      user?.is_global_admin ||
-      user?.roles?.some(
-        (r: any) =>
-          r.section_key === sectionKey &&
-          ["President", "Ne2b al Ra2is", "wakil tanchi2a"].includes(
-            r.role_name,
-          ),
-      )
+  const canManageSection = (sectionId: number) => {
+    if (user?.is_global_admin || user?.is_super_admin) return true;
+
+    return user?.roles?.some(
+      (r: any) =>
+        r.section_id === sectionId &&
+        ["President", "Ne2b al Ra2is", "wakil tanchi2a"].includes(r.role_name),
     );
   };
 
@@ -42,7 +45,8 @@ export default function MeetingsPage() {
 
         // Transform backend sections to frontend format
         const transformed = res.data.map((section: any) => ({
-          key: section.name.toLowerCase(), // "chabiba", "talaee", "forsan"
+          id: section.id, // 👈 IMPORTANT
+          key: section.name.toLowerCase(), // optional
           title: section.name + " Meetings",
           driveLinks: section.meetings?.map((m: any) => m.drive_link) ?? [],
         }));
@@ -51,9 +55,9 @@ export default function MeetingsPage() {
       } catch {
         // fallback if backend fails
         setSections([
-          { key: "chabiba", title: "Chabiba Meetings", driveLinks: [] },
-          { key: "tala2e3", title: "Tala2e3 Meetings", driveLinks: [] },
-          { key: "forsan", title: "Forsan Meetings", driveLinks: [] },
+          { key: "chabiba", id: 1, title: "Chabiba Meetings", driveLinks: [] },
+          { key: "tala2e3", id: 2, title: "Tala2e3 Meetings", driveLinks: [] },
+          { key: "forsan", id: 3, title: "Forsan Meetings", driveLinks: [] },
         ]);
       } finally {
         setLoading(false);
@@ -62,25 +66,6 @@ export default function MeetingsPage() {
 
     fetchMeetings();
   }, []);
-
-  /* ---------------- ADD LINK ---------------- */
-  const addDriveLink = (sectionKey: string) => {
-    const link = prompt("Paste Google Drive link:");
-    if (!link) return;
-
-    setSections((prev) =>
-      prev.map((s) =>
-        s.key === sectionKey
-          ? { ...s, driveLinks: [link] } // one link per section
-          : s,
-      ),
-    );
-
-    // TODO: POST to backend
-    // await api.post(`/meetings/${sectionKey}/drive-link`, { link })
-  };
-
-  /* ===================================================== */
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -96,7 +81,7 @@ export default function MeetingsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {sections.map((section) => {
-              const canEdit = canManageSection(section.key);
+              const canEdit = canManageSection(section.id);
 
               return (
                 <div
@@ -117,49 +102,66 @@ export default function MeetingsPage() {
 
                   {/* BODY */}
                   <div className="p-6 space-y-4">
-                    {(!section.driveLinks ||
-                      section.driveLinks.length === 0) && (
+                    {section.driveLinks?.length === 0 && (
                       <p className="text-gray-500 text-sm">
-                        No meeting links added yet.
+                        No meeting link added yet.
                       </p>
                     )}
 
-                    {section.driveLinks
-                      ?.filter((link) => link) // remove undefined / empty
-                      .map((link) => (
+                    {section.driveLinks?.map((link) => (
+                      <div
+                        key={link}
+                        className="flex items-center gap-3 p-3 rounded-xl border hover:bg-blue-50 transition"
+                      >
+                        <FaLink className="text-blue-600 shrink-0" />
                         <a
-                          key={`${section.key}-${link}`}
                           href={link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 rounded-xl border hover:bg-blue-50 transition"
+                          className="text-sm text-gray-700 truncate"
                         >
-                          <FaLink className="text-blue-600" />
-                          <span className="text-sm text-gray-700 truncate">
-                            {link}
-                          </span>
+                          {link}
                         </a>
-                      ))}
-                  </div>
+                      </div>
+                    ))}
 
-                  {/* FOOTER */}
-                  {canEdit && (
-                    <div className="p-6 border-t bg-gray-50">
+                    {canEdit && (
                       <button
-                        onClick={() => addDriveLink(section.key)}
-                        className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow hover:scale-105 transition"
+                        onClick={() => {
+                          setSelectedSection(section);
+                          setModalOpen(true);
+                        }}
+                        className="mt-4 w-full text-center px-4 py-2 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
                       >
-                        <FaPlus />
-                        Add Drive Link
+                        Edit Meeting Link
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
         )}
       </div>
+      {selectedSection && (
+        <EditMeetingLinkModal
+          open={modalOpen}
+          section={selectedSection}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedSection(null);
+          }}
+          onSaved={(link) => {
+            setSections((prev) =>
+              prev.map((s) =>
+                s.key === selectedSection.key
+                  ? { ...s, driveLinks: [link] }
+                  : s,
+              ),
+            );
+          }}
+        />
+      )}
     </div>
   );
 }
