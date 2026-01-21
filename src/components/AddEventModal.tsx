@@ -64,6 +64,15 @@ export default function AddEventModal({
       setShowOptional(false);
     }
   }, [open, now]);
+  const currentUser = JSON.parse(localStorage.getItem("user_info") || "{}");
+
+  const isRestrictedPresident = () => {
+    return currentUser.roles?.some(
+      (r: any) =>
+        r.role_name === "Tala2e3 President" ||
+        r.role_name === "Forsan President",
+    );
+  };
 
   const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -281,7 +290,7 @@ export default function AddEventModal({
             )}
 
             {/* Shared Event Checkbox (Non-Admin) */}
-            {!isGlobalAdmin && (
+            {!isGlobalAdmin && !isRestrictedPresident() && (
               <label className="flex items-center gap-3 p-4 border-2 border-gray-200 rounded-xl cursor-pointer hover:border-blue-300 hover:bg-gray-50 transition-all">
                 <input
                   type="checkbox"

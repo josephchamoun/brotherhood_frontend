@@ -34,6 +34,7 @@ export default function UsersPage() {
   const [selectedSection, setSelectedSection] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedRole, setSelectedRole] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
 
   const navigate = useNavigate();
 
@@ -78,15 +79,20 @@ export default function UsersPage() {
     return age;
   };
 
-  const fetchUsers = () => {
-    api
-      .get("/users", {
+  const fetchUsers = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/users", {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
         },
-      })
-      .then((res) => setUsers(res.data))
-      .catch(console.error);
+      });
+      setUsers(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -175,7 +181,7 @@ export default function UsersPage() {
   const globalAdmins = filterUsers(users.filter((u) => u.is_global_admin));
   const otherUsers = filterUsers(users.filter((u) => !u.is_global_admin));
 
-  const renderUser = (u: User, isAdmin = false) => {
+  const renderUser = (u: User, isGlobalAdmin = false) => {
     const activeSections = u.sections?.filter(
       (s) =>
         s.pivot &&
@@ -243,22 +249,22 @@ export default function UsersPage() {
           </div>
 
           <div className="flex gap-2">
-            {!isAdmin && (
-              <>
+            {!u.is_super_admin &&
+              (isSuperAdmin || (isGlobalAdmin && !u.is_global_admin)) && (
                 <button
                   className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 shadow-sm"
                   onClick={() => navigate(`/users/${u.id}`)}
                 >
                   View
                 </button>
-
-                <button
-                  className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 shadow-sm"
-                  onClick={() => setSelectedUserId(u.id)}
-                >
-                  + Section
-                </button>
-              </>
+              )}
+            {!isGlobalAdmin && (
+              <button
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 shadow-sm"
+                onClick={() => setSelectedUserId(u.id)}
+              >
+                + Section
+              </button>
             )}
 
             {!u.is_super_admin &&
@@ -279,229 +285,242 @@ export default function UsersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <Navbar />
-
-      <div className="max-w-7xl mx-auto p-6">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-2">Members</h1>
-              <p className="text-gray-600">
-                Manage your brotherhood community members
-              </p>
-            </div>
-            {isGlobalAdmin && (
-              <button
-                className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-                onClick={() => setShowAddUser(true)}
-              >
-                <PlusIcon className="w-5 h-5" />
-                Add Member
-              </button>
-            )}
+      {loading && (
+        <div className="flex items-center justify-center py-32">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-600 font-medium">Loading members...</p>
           </div>
-
-          {/* Search and Filters */}
-          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Search Bar */}
-              <div className="flex-1 relative">
-                <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search by name, email, or phone..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
-                />
+        </div>
+      )}
+      {!loading && (
+        <>
+          <div className="max-w-7xl mx-auto p-6">
+            {/* Header */}
+            <div className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                    Members
+                  </h1>
+                  <p className="text-gray-600">
+                    Manage your brotherhood community members
+                  </p>
+                </div>
+                {isGlobalAdmin && (
+                  <button
+                    className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-blue-700 hover:to-indigo-800 text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+                    onClick={() => setShowAddUser(true)}
+                  >
+                    <PlusIcon className="w-5 h-5" />
+                    Add Member
+                  </button>
+                )}
               </div>
 
-              {/* Filter Button */}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
-                  showFilters
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <FunnelIcon className="w-5 h-5" />
-                Filters
-              </button>
-            </div>
+              {/* Search and Filters */}
+              <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200">
+                <div className="flex flex-col md:flex-row gap-4">
+                  {/* Search Bar */}
+                  <div className="flex-1 relative">
+                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search by name, email, or phone..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+                    />
+                  </div>
 
-            {/* Filter Options */}
-            {showFilters && (
-              <div className="mt-4 pt-4 border-t border-gray-200">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Filter by Section
-                </label>
-                <div className="flex flex-wrap gap-2">
+                  {/* Filter Button */}
                   <button
-                    onClick={() => setSelectedSection("all")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      selectedSection === "all"
-                        ? "bg-blue-600 text-white shadow-md"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all ${
+                      showFilters
+                        ? "bg-blue-600 text-white"
                         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                     }`}
                   >
-                    All Members
+                    <FunnelIcon className="w-5 h-5" />
+                    Filters
                   </button>
-                  <button
-                    onClick={() => setSelectedSection("no-section")}
-                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                      selectedSection === "no-section"
-                        ? "bg-blue-600 text-white shadow-md"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    No Section
-                  </button>
-                  {allSections.map((section) => (
-                    <button
-                      key={section}
-                      onClick={() => setSelectedSection(section)}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        selectedSection === section
-                          ? "bg-blue-600 text-white shadow-md"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      {section}
-                    </button>
-                  ))}
                 </div>
-                {/* Role Filter */}
-                <div className="mt-4">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Filter by Role
-                  </label>
 
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      onClick={() => setSelectedRole("all")}
-                      className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                        selectedRole === "all"
-                          ? "bg-indigo-600 text-white shadow-md"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                      }`}
-                    >
-                      All Roles
-                    </button>
-
-                    {allRoles.map((role) => (
+                {/* Filter Options */}
+                {showFilters && (
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Filter by Section
+                    </label>
+                    <div className="flex flex-wrap gap-2">
                       <button
-                        key={role}
-                        onClick={() => setSelectedRole(role)}
+                        onClick={() => setSelectedSection("all")}
                         className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                          selectedRole === role
-                            ? "bg-indigo-600 text-white shadow-md"
+                          selectedSection === "all"
+                            ? "bg-blue-600 text-white shadow-md"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                         }`}
                       >
-                        {role}
+                        All Members
                       </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Results Count */}
-            <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium">
-                Showing {globalAdmins.length + otherUsers.length} of{" "}
-                {users.length} members
-              </span>
-              {(searchQuery || selectedSection !== "all") && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
-                    setSelectedSection("all");
-                  }}
-                  className="text-blue-600 hover:text-blue-800 font-medium"
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Users Grid */}
-        <div
-          className={`grid grid-cols-1 gap-6 ${
-            isSuperAdmin ? "lg:grid-cols-3" : "lg:grid-cols-1"
-          }`}
-        >
-          {/* Global Admins */}
-          {isSuperAdmin && (
-            <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200 lg:col-span-1">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center">
-                  <span className="text-2xl">👑</span>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Global Admins
-                  </h2>
-                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold">
-                    {globalAdmins.length} members
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
-                {globalAdmins.length ? (
-                  globalAdmins.map((u) => renderUser(u, true))
-                ) : (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <span className="text-3xl">👥</span>
+                      <button
+                        onClick={() => setSelectedSection("no-section")}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                          selectedSection === "no-section"
+                            ? "bg-blue-600 text-white shadow-md"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        }`}
+                      >
+                        No Section
+                      </button>
+                      {allSections.map((section) => (
+                        <button
+                          key={section}
+                          onClick={() => setSelectedSection(section)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                            selectedSection === section
+                              ? "bg-blue-600 text-white shadow-md"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          {section}
+                        </button>
+                      ))}
                     </div>
-                    <p className="text-gray-400 text-sm">No admins found</p>
+                    {/* Role Filter */}
+                    <div className="mt-4">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Filter by Role
+                      </label>
+
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          onClick={() => setSelectedRole("all")}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                            selectedRole === "all"
+                              ? "bg-indigo-600 text-white shadow-md"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          }`}
+                        >
+                          All Roles
+                        </button>
+
+                        {allRoles.map((role) => (
+                          <button
+                            key={role}
+                            onClick={() => setSelectedRole(role)}
+                            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                              selectedRole === role
+                                ? "bg-indigo-600 text-white shadow-md"
+                                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                            }`}
+                          >
+                            {role}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
+
+                {/* Results Count */}
+                <div className="mt-4 flex items-center gap-2 text-sm text-gray-600">
+                  <span className="font-medium">
+                    Showing {globalAdmins.length + otherUsers.length} of{" "}
+                    {users.length} members
+                  </span>
+                  {(searchQuery || selectedSection !== "all") && (
+                    <button
+                      onClick={() => {
+                        setSearchQuery("");
+                        setSelectedSection("all");
+                      }}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          )}
 
-          {/* Other Users */}
-          <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200 lg:col-span-2">
-            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">👥</span>
-              </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  Community Members
-                </h2>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
-                  {otherUsers.length} members
-                </span>
-              </div>
-            </div>
-
-            <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
-              {otherUsers.length ? (
-                otherUsers.map((u) => renderUser(u))
-              ) : (
-                <div className="text-center py-12">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <span className="text-3xl">🔍</span>
+            {/* Users Grid */}
+            <div
+              className={`grid grid-cols-1 gap-6 ${
+                isSuperAdmin ? "lg:grid-cols-3" : "lg:grid-cols-1"
+              }`}
+            >
+              {/* Global Admins */}
+              {isSuperAdmin && (
+                <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200 lg:col-span-1">
+                  <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                    <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl flex items-center justify-center">
+                      <span className="text-2xl">👑</span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Global Admins
+                      </h2>
+                      <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold">
+                        {globalAdmins.length} members
+                      </span>
+                    </div>
                   </div>
-                  <p className="text-gray-500 font-medium mb-1">
-                    No members found
-                  </p>
-                  <p className="text-gray-400 text-sm">
-                    Try adjusting your search or filters
-                  </p>
+
+                  <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
+                    {globalAdmins.length ? (
+                      globalAdmins.map((u) => renderUser(u, true))
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <span className="text-3xl">👥</span>
+                        </div>
+                        <p className="text-gray-400 text-sm">No admins found</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
+
+              {/* Other Users */}
+              <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-200 lg:col-span-2">
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-200">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <span className="text-2xl">👥</span>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Community Members
+                    </h2>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold">
+                      {otherUsers.length} members
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-h-[calc(100vh-400px)] overflow-y-auto pr-2">
+                  {otherUsers.length ? (
+                    otherUsers.map((u) => renderUser(u))
+                  ) : (
+                    <div className="text-center py-12">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span className="text-3xl">🔍</span>
+                      </div>
+                      <p className="text-gray-500 font-medium mb-1">
+                        No members found
+                      </p>
+                      <p className="text-gray-400 text-sm">
+                        Try adjusting your search or filters
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* Add User Modal */}
       {showAddUser && isGlobalAdmin && (

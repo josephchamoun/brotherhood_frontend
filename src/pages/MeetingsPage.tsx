@@ -1,12 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import { FaLink, FaUsers } from "react-icons/fa";
+import {
+  FaLink,
+  FaUsers,
+  FaEdit,
+  FaExternalLinkAlt,
+  FaCalendarAlt,
+  FaLock,
+} from "react-icons/fa";
 import Navbar from "../components/Navbar";
 import api from "../api/api";
 import EditMeetingLinkModal from "../components/EditMeetingLinkModal";
 
 interface MeetingSection {
-  id: number; // backend section ID
+  id: number;
   key: "chabiba" | "tala2e3" | "forsan";
   title: string;
   driveLinks: string[];
@@ -26,11 +33,17 @@ export default function MeetingsPage() {
   const canManageSection = (sectionId: number) => {
     if (user?.is_global_admin || user?.is_super_admin) return true;
 
-    return user?.roles?.some(
-      (r: any) =>
-        r.section_id === sectionId &&
-        ["President", "Ne2b al Ra2is", "wakil tanchi2a"].includes(r.role_name),
-    );
+    const presidentMap: Record<number, string> = {
+      1: "Chabiba President",
+      2: "Tala2e3 President",
+      3: "Forsan President",
+    };
+
+    return user?.roles?.some((r: any) => {
+      if (r.section_id !== sectionId) return false;
+      if (r.role_name === presidentMap[sectionId]) return true;
+      return ["Ne2b al Ra2is", "wakil tanchi2a"].includes(r.role_name);
+    });
   };
 
   /* ---------------- FETCH ---------------- */
@@ -43,17 +56,15 @@ export default function MeetingsPage() {
           },
         });
 
-        // Transform backend sections to frontend format
         const transformed = res.data.map((section: any) => ({
-          id: section.id, // 👈 IMPORTANT
-          key: section.name.toLowerCase(), // optional
+          id: section.id,
+          key: section.name.toLowerCase(),
           title: section.name + " Meetings",
           driveLinks: section.meetings?.map((m: any) => m.drive_link) ?? [],
         }));
 
         setSections(transformed);
       } catch {
-        // fallback if backend fails
         setSections([
           { key: "chabiba", id: 1, title: "Chabiba Meetings", driveLinks: [] },
           { key: "tala2e3", id: 2, title: "Tala2e3 Meetings", driveLinks: [] },
@@ -67,74 +78,176 @@ export default function MeetingsPage() {
     fetchMeetings();
   }, []);
 
+  // Color themes for each section
+  const sectionThemes = {
+    chabiba: {
+      gradient: "from-blue-600 to-indigo-600",
+      bgGradient: "from-blue-50 to-indigo-50",
+      border: "border-blue-500",
+      text: "text-blue-600",
+      hover: "hover:bg-blue-50",
+      icon: "text-blue-600",
+    },
+    tala2e3: {
+      gradient: "from-purple-600 to-pink-600",
+      bgGradient: "from-purple-50 to-pink-50",
+      border: "border-purple-500",
+      text: "text-purple-600",
+      hover: "hover:bg-purple-50",
+      icon: "text-purple-600",
+    },
+    forsan: {
+      gradient: "from-orange-600 to-red-600",
+      bgGradient: "from-orange-50 to-red-50",
+      border: "border-orange-500",
+      text: "text-orange-600",
+      hover: "hover:bg-orange-50",
+      icon: "text-orange-600",
+    },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50">
       <Navbar />
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-10">
-          Meetings Archive
-        </h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="flex items-center gap-4 mb-3">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <FaCalendarAlt className="text-white text-2xl" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900">
+                Meetings Archive
+              </h1>
+              <p className="text-gray-600 text-lg mt-1">
+                Access meeting records and links for all sections
+              </p>
+            </div>
+          </div>
+        </div>
 
         {loading ? (
-          <p>Loading...</p>
+          <div className="flex items-center justify-center py-20">
+            <div className="relative w-20 h-20">
+              <div className="absolute inset-0 border-4 border-blue-200 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sections.map((section) => {
               const canEdit = canManageSection(section.id);
+              const theme = sectionThemes[section.key] || sectionThemes.chabiba;
 
               return (
                 <div
                   key={section.key}
-                  className="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all border-t-4 border-blue-600"
+                  className="group bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-1"
                 >
-                  {/* HEADER */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 border-b">
+                  {/* Gradient Top Bar */}
+                  <div className={`h-2 bg-gradient-to-r ${theme.gradient}`} />
+
+                  {/* Header */}
+                  <div
+                    className={`bg-gradient-to-br ${theme.bgGradient} p-6 border-b border-gray-100`}
+                  >
                     <div className="flex items-center justify-between">
-                      <h2 className="text-2xl font-bold text-gray-900">
-                        {section.title}
-                      </h2>
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-xl flex items-center justify-center">
-                        <FaUsers className="text-white text-xl" />
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-14 h-14 bg-gradient-to-br ${theme.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                        >
+                          <FaUsers className="text-white text-2xl" />
+                        </div>
+                        <div>
+                          <h2 className="text-2xl font-bold text-gray-900">
+                            {section.title}
+                          </h2>
+                          <p className="text-sm text-gray-600 mt-0.5">
+                            {section.driveLinks?.length || 0}{" "}
+                            {section.driveLinks?.length === 1
+                              ? "link"
+                              : "links"}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* BODY */}
-                  <div className="p-6 space-y-4">
+                  {/* Body */}
+                  <div className="p-6">
+                    {/* Empty State */}
                     {section.driveLinks?.length === 0 && (
-                      <p className="text-gray-500 text-sm">
-                        No meeting link added yet.
-                      </p>
+                      <div className="text-center py-8">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <FaLink className="text-gray-400 text-2xl" />
+                        </div>
+                        <p className="text-gray-600 font-medium mb-1">
+                          No meetings yet
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {canEdit
+                            ? "Add your first meeting link below"
+                            : "Check back later for updates"}
+                        </p>
+                      </div>
                     )}
 
-                    {section.driveLinks?.map((link) => (
-                      <div
-                        key={link}
-                        className="flex items-center gap-3 p-3 rounded-xl border hover:bg-blue-50 transition"
-                      >
-                        <FaLink className="text-blue-600 shrink-0" />
-                        <a
-                          href={link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-gray-700 truncate"
+                    {/* Meeting Links */}
+                    <div className="space-y-3 mb-4">
+                      {section.driveLinks?.map((link, idx) => (
+                        <div
+                          key={link}
+                          className={`group/link flex items-center gap-3 p-4 rounded-xl border-2 ${theme.border} ${theme.hover} transition-all`}
                         >
-                          {link}
-                        </a>
-                      </div>
-                    ))}
+                          <div
+                            className={`w-10 h-10 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border ${theme.border}`}
+                          >
+                            <FaLink className={theme.icon} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs text-gray-500 font-semibold mb-1">
+                              Meeting Link #{idx + 1}
+                            </p>
+                            <a
+                              href={link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={`text-sm font-medium ${theme.text} hover:underline truncate block group-hover/link:text-opacity-80`}
+                            >
+                              {link}
+                            </a>
+                          </div>
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`w-9 h-9 bg-white rounded-lg flex items-center justify-center flex-shrink-0 border ${theme.border} ${theme.hover} transition-all`}
+                          >
+                            <FaExternalLinkAlt className={theme.icon} />
+                          </a>
+                        </div>
+                      ))}
+                    </div>
 
-                    {canEdit && (
+                    {/* Edit Button */}
+                    {canEdit ? (
                       <button
                         onClick={() => {
                           setSelectedSection(section);
                           setModalOpen(true);
                         }}
-                        className="mt-4 w-full text-center px-4 py-2 rounded-xl border border-blue-600 text-blue-600 font-semibold hover:bg-blue-50 transition"
+                        className={`w-full flex items-center justify-center gap-2 bg-gradient-to-r ${theme.gradient} text-white py-4 rounded-xl font-semibold transition-all hover:shadow-lg hover:scale-105`}
                       >
-                        Edit Meeting Link
+                        <FaEdit className="text-lg" />
+                        <span>Edit Meeting Link</span>
                       </button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2 bg-gray-100 text-gray-500 py-4 rounded-xl">
+                        <FaLock />
+                        <span className="text-sm font-medium">View Only</span>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -143,6 +256,8 @@ export default function MeetingsPage() {
           </div>
         )}
       </div>
+
+      {/* Modal */}
       {selectedSection && (
         <EditMeetingLinkModal
           open={modalOpen}

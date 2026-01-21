@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import {
   ChevronDown,
@@ -37,7 +38,7 @@ export default function Tala2e3Page() {
   const [showRoleModal, setShowRoleModal] = useState<number | null>(null);
 
   const loggedInUser = JSON.parse(localStorage.getItem("user_info") || "null");
-  const isAdmin = loggedInUser?.is_global_admin;
+
   const TALA2E3_SECTION_ID = 2;
 
   const hasActiveNonNormalRole = (user: User) =>
@@ -67,6 +68,15 @@ export default function Tala2e3Page() {
       ? { name: role.name, nameAr: role.nameAr }
       : { name: "Normal Member", nameAr: "عضو عادي" };
   };
+  const isTala2e3President = () => {
+    return (
+      loggedInUser?.roles?.some(
+        (r: any) => r.role_id === 3 && r.section_id === TALA2E3_SECTION_ID, // Tala2e3 President in Tala2e3 section
+      ) || loggedInUser?.is_global_admin
+    );
+  };
+
+  const canManage = isTala2e3President();
 
   const getActiveRoles = (user: User): Tala2e3Role[] =>
     user.tala2e3_roles?.filter((r) => r.end_date === null) || [];
@@ -286,7 +296,7 @@ export default function Tala2e3Page() {
               )}
             </div>
 
-            {isAdmin && (
+            {canManage && (
               <div className="flex flex-col gap-2 w-full sm:w-auto sm:items-end">
                 {assigningUserId === user.id ? (
                   <div className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto sm:mx-0" />

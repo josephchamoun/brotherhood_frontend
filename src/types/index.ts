@@ -124,3 +124,12 @@ export type Stats = {
   total_users: number;
   total_events: number;
 };
+
+export interface DriveAccount {
+  id: number;
+  email: string;
+  title: string;
+  password?: string; // only present when fetching single account
+  created_at: string;
+  updated_at: string;
+}

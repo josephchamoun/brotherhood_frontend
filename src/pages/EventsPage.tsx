@@ -140,6 +140,22 @@ export default function EventsPage() {
     if (sectionId === 3 && hasRole(FORSAN_PRESIDENT, 3)) return true;
     return false;
   };
+  const isPresidentOrNe2bedit = (event: Event) => {
+    if (!event.sections) return false;
+
+    // Shared events → only Chabiba President
+    if (isSharedEvent(event)) {
+      return hasRole(CHABIBA_PRESIDENT, 1); // section 1 = Chabiba
+    }
+
+    // Check if user is president of any section of this event
+    return event.sections.some((s) => {
+      if (s.id === 1) return hasRole(CHABIBA_PRESIDENT, 1);
+      if (s.id === 2) return hasRole(TALA2E3_PRESIDENT, 2);
+      if (s.id === 3) return hasRole(FORSAN_PRESIDENT, 3);
+      return false;
+    });
+  };
 
   const isSharedEvent = (event: Event) => {
     const ids = event.sections
@@ -211,8 +227,10 @@ export default function EventsPage() {
   };
 
   const canDelete = (event: Event) => {
+    if (isHighAdmin()) return true;
     if (isEventLocked(event)) return false;
-    return isHighAdmin() || event.sections.some((s) => isPresidentOrNe2b(s.id));
+    if (isSharedEvent(event)) return isPresidentOrNe2b(1);
+    return event.sections.some((s) => isPresidentOrNe2b(s.id));
   };
 
   // ---------------------------
@@ -841,9 +859,11 @@ export default function EventsPage() {
               ? "full"
               : isAminSer(selectedEvent)
                 ? "full"
-                : isWakilTanchi2a(selectedEvent)
-                  ? "description"
-                  : "none"
+                : isPresidentOrNe2bedit(selectedEvent)
+                  ? "full"
+                  : isWakilTanchi2a(selectedEvent)
+                    ? "description"
+                    : "none"
             : "none"
         }
         onUpdated={(updatedEvent) => {
@@ -864,7 +884,8 @@ export default function EventsPage() {
           selectedEvent
             ? isHighAdmin() ||
               isAminSandou2(selectedEvent) ||
-              isNe2b(selectedEvent)
+              isNe2b(selectedEvent) ||
+              isPresidentOrNe2bedit(selectedEvent) // ✅ add this
             : false
         }
         onUpdated={(updatedEvent) => {
