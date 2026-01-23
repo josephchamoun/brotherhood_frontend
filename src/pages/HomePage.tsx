@@ -27,6 +27,8 @@ export default function HomePage() {
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
+    console.log("API URL being used:", api.defaults.baseURL); // Add this line
+
     const fetchStats = async () => {
       try {
         const res = await api.get("/stats");
