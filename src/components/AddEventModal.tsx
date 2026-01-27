@@ -75,6 +75,11 @@ export default function AddEventModal({
           (r.section_id === 2 || r.section_id === 3)),
     );
   };
+  const isChabibaAminSer = () => {
+    return currentUser.roles?.some(
+      (r: any) => r.role_name === "Amin Ser" && r.section_id === 1,
+    );
+  };
 
   const handleFieldChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -244,7 +249,7 @@ export default function AddEventModal({
             </div>
 
             {/* Global Admin Section Selector */}
-            {isGlobalAdmin && (
+            {(isGlobalAdmin || isChabibaAminSer()) && (
               <div>
                 <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                   <FaUsers className="text-blue-600" />
