@@ -70,7 +70,9 @@ export default function AddEventModal({
     return currentUser.roles?.some(
       (r: any) =>
         r.role_name === "Tala2e3 President" ||
-        r.role_name === "Forsan President",
+        r.role_name === "Forsan President" ||
+        (r.role_name === "Amin Ser" &&
+          (r.section_id === 2 || r.section_id === 3)),
     );
   };
 
@@ -306,107 +308,109 @@ export default function AddEventModal({
             )}
 
             {/* Optional Fields Accordion */}
-            <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
-              <button
-                type="button"
-                onClick={() => setShowOptional(!showOptional)}
-                className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
-              >
-                <span className="font-semibold text-gray-700">
-                  Optional Fields
-                </span>
-                {showOptional ? (
-                  <FaChevronUp className="text-gray-600" />
-                ) : (
-                  <FaChevronDown className="text-gray-600" />
+            {isRestrictedPresident() === false && (
+              <div className="border-2 border-gray-200 rounded-xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setShowOptional(!showOptional)}
+                  className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <span className="font-semibold text-gray-700">
+                    Optional Fields
+                  </span>
+                  {showOptional ? (
+                    <FaChevronUp className="text-gray-600" />
+                  ) : (
+                    <FaChevronDown className="text-gray-600" />
+                  )}
+                </button>
+
+                {showOptional && (
+                  <div className="p-5 space-y-5 bg-white">
+                    {/* Description */}
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                        <FaAlignLeft className="text-blue-600" />
+                        Description
+                      </label>
+                      <textarea
+                        name="description"
+                        placeholder="Enter event description"
+                        value={form.description}
+                        onChange={handleFieldChange}
+                        rows={3}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900 placeholder-gray-400 resize-none"
+                      />
+                    </div>
+
+                    {/* Financial Fields */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div>
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                          <FaDollarSign className="text-red-600" />
+                          Total Spent
+                        </label>
+                        <input
+                          type="number"
+                          name="total_spent"
+                          placeholder="0"
+                          value={form.total_spent}
+                          onChange={handleFieldChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                          <FaDollarSign className="text-green-600" />
+                          Total Revenue
+                        </label>
+                        <input
+                          type="number"
+                          name="total_revenue"
+                          placeholder="0"
+                          value={form.total_revenue}
+                          onChange={handleFieldChange}
+                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Notes */}
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                        <FaStickyNote className="text-blue-600" />
+                        Notes
+                      </label>
+                      <textarea
+                        name="notes"
+                        placeholder="Additional notes"
+                        value={form.notes}
+                        onChange={handleFieldChange}
+                        rows={3}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900 placeholder-gray-400 resize-none"
+                      />
+                    </div>
+
+                    {/* Drive Link */}
+                    <div>
+                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                        <FaLink className="text-blue-600" />
+                        Google Drive Link
+                      </label>
+                      <input
+                        type="url"
+                        name="drive_link"
+                        placeholder="https://drive.google.com/..."
+                        value={form.drive_link}
+                        onChange={handleFieldChange}
+                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900 placeholder-gray-400"
+                      />
+                    </div>
+                  </div>
                 )}
-              </button>
-
-              {showOptional && (
-                <div className="p-5 space-y-5 bg-white">
-                  {/* Description */}
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                      <FaAlignLeft className="text-blue-600" />
-                      Description
-                    </label>
-                    <textarea
-                      name="description"
-                      placeholder="Enter event description"
-                      value={form.description}
-                      onChange={handleFieldChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900 placeholder-gray-400 resize-none"
-                    />
-                  </div>
-
-                  {/* Financial Fields */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                        <FaDollarSign className="text-red-600" />
-                        Total Spent
-                      </label>
-                      <input
-                        type="number"
-                        name="total_spent"
-                        placeholder="0"
-                        value={form.total_spent}
-                        onChange={handleFieldChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                        <FaDollarSign className="text-green-600" />
-                        Total Revenue
-                      </label>
-                      <input
-                        type="number"
-                        name="total_revenue"
-                        placeholder="0"
-                        value={form.total_revenue}
-                        onChange={handleFieldChange}
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Notes */}
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                      <FaStickyNote className="text-blue-600" />
-                      Notes
-                    </label>
-                    <textarea
-                      name="notes"
-                      placeholder="Additional notes"
-                      value={form.notes}
-                      onChange={handleFieldChange}
-                      rows={3}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900 placeholder-gray-400 resize-none"
-                    />
-                  </div>
-
-                  {/* Drive Link */}
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                      <FaLink className="text-blue-600" />
-                      Google Drive Link
-                    </label>
-                    <input
-                      type="url"
-                      name="drive_link"
-                      placeholder="https://drive.google.com/..."
-                      value={form.drive_link}
-                      onChange={handleFieldChange}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-600 transition-all text-gray-900 placeholder-gray-400"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 

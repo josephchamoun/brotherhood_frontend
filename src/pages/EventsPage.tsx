@@ -53,7 +53,7 @@ export default function EventsPage() {
   type DateFilter = "all" | "upcoming" | "past";
 
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
-
+  const [expanded, setExpanded] = useState(false);
   const [yearFilter, setYearFilter] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
 
@@ -258,7 +258,9 @@ export default function EventsPage() {
 
     return new Date() > lockDate;
   };
-
+  const isAminSerAnySection = () => {
+    return roles.some((r) => r.role_name === AMIN_SER && r.end_date === null);
+  };
   const calculateProfit = (event: Event) =>
     parseFloat(event.total_revenue) - parseFloat(event.total_spent);
 
@@ -266,7 +268,8 @@ export default function EventsPage() {
     isHighAdmin() ||
     isPresidentOrNe2b(1) ||
     isPresidentOrNe2b(2) ||
-    isPresidentOrNe2b(3);
+    isPresidentOrNe2b(3) ||
+    isAminSerAnySection();
 
   // Get unique years from events
   const availableYears = Array.from(
@@ -618,9 +621,21 @@ export default function EventsPage() {
                           <h2 className="text-xl font-bold text-white mb-1">
                             {event.title}
                           </h2>
-                          <p className="text-blue-100 text-sm line-clamp-2">
-                            {event.description}
-                          </p>
+                          <div>
+                            <p
+                              className={`text-blue-100 text-sm ${expanded ? "" : "line-clamp-2"}`}
+                            >
+                              {event.description}
+                            </p>
+                            {event.description.length > 100 && (
+                              <button
+                                onClick={() => setExpanded(!expanded)}
+                                className="text-blue-200 text-xs mt-1 hover:underline"
+                              >
+                                {expanded ? "Show less" : "Read more"}
+                              </button>
+                            )}
+                          </div>
                         </div>
 
                         {/* Actions */}
